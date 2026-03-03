@@ -121,6 +121,14 @@
             <button type="submit" class="submit-btn">Kirim Saran</button>
             <p class="form-note" style="display:none; color:#28a745; margin-top:15px;">✓ Terima kasih! Saran Anda telah berhasil dikirim dan tersimpan.</p>
         </form>
+
+        <hr style="margin: 30px 0; border: none; border-top: 2px solid #ddd;">
+
+        <h3>📖 Riwayat Saran yang Masuk</h3>
+        <div id="suggestionsHistory" class="suggestions-history"></div>
+        <div id="emptyHistory" style="text-align: center; color: #666; padding: 20px;">
+            <p>Belum ada saran yang diterima. Jadilah yang pertama memberikan saran! 💭</p>
+        </div>
     </section>
 
     <footer>
@@ -128,7 +136,55 @@
         <p style="font-size: 0.8rem; margin-top: 5px;"><a href="admin.html" style="color: #fff; text-decoration: none; opacity: 0.7;">Admin Dashboard</a></p>
     </footer>
 
+
     <script>
+        const STORAGE_KEY = 'suggestions';
+        
+        function displaySuggestionsHistory() {
+            const submissions = JSON.parse(localStorage.getItem(STORAGE_KEY)) || [];
+            const container = document.getElementById('suggestionsHistory');
+            const emptyState = document.getElementById('emptyHistory');
+            
+            if (submissions.length === 0) {
+                container.style.display = 'none';
+                emptyState.style.display = 'block';
+                return;
+            }
+            
+            container.style.display = 'grid';
+            emptyState.style.display = 'block';
+            
+            // Sort by newest first
+            submissions.sort((a, b) => b.id - a.id);
+            
+            container.innerHTML = submissions.map(submission => `
+                <div class="suggestion-card">
+                    <div class="suggestion-card-header">
+                        <div class="suggestion-name">👤 ${escapeHtml(submission.name)}</div>
+                        <div class="suggestion-time">${submission.timestamp}</div>
+                    </div>
+                    <div class="suggestion-card-content">
+                        ${escapeHtml(submission.suggestion).replace(/\n/g, '<br>')}
+                    </div>
+                </div>
+            `).join('');
+            
+            if (submissions.length > 0) {
+                emptyState.style.display = 'none';
+            }
+        }
+
+        function escapeHtml(text) {
+            const map = {
+                '&': '&amp;',
+                '<': '&lt;',
+                '>': '&gt;',
+                '"': '&quot;',
+                "'": '&#039;'
+            };
+            return text.replace(/[&<>"']/g, m => map[m]);
+        }
+
         document.getElementById('suggestionForm').addEventListener('submit', function(e) {
             e.preventDefault();
             
@@ -148,11 +204,14 @@
             };
             
             // Get existing submissions from localStorage
-            let submissions = JSON.parse(localStorage.getItem('suggestions')) || [];
+            let submissions = JSON.parse(localStorage.getItem(STORAGE_KEY)) || [];
             submissions.push(submission);
-            localStorage.setItem('suggestions', JSON.stringify(submissions));
+            localStorage.setItem(STORAGE_KEY, JSON.stringify(submissions));
             
-            // Send email via FormSubmit
+            // Update history display
+            displaySuggestionsHistory();
+            
+            // Send email via mailto
             const subject = 'Saran untuk Ajang Penulisan Buku PII SUMUT 2026';
             const body = `Nama: ${name}\nEmail: ${email}\nNo. WhatsApp: ${phone || 'Tidak diberikan'}\n\nSaran:\n${suggestion}`;
             const mailtoLink = `mailto:fim.piisumut@gmail.com?subject=${encodeURIComponent(subject)}&body=${encodeURIComponent(body)}`;
@@ -168,6 +227,13 @@
                 form.reset();
                 formNote.style.display = 'none';
             }, 2000);
+        });
+
+        // Load suggestions history when page loads
+        window.addEventListener('load', function() {
+            displaySuggestionsHistory();
+            // Refresh history every 3 seconds
+            setInterval(displaySuggestionsHistory, 3000);
         });
     </script>
 </body>

@@ -25,6 +25,14 @@ ul { margin-left:20px; }
 .submit-btn { background:#004080; color:#fff; border:none; padding:12px 30px; border-radius:4px; font-size:1rem; font-weight:600; cursor:pointer; transition:background .3s; }
 .submit-btn:hover { background:#0066cc; }
 
+/* Suggestions History */
+.suggestions-history { display:grid; gap:15px; margin-top:20px; }
+.suggestion-card { background:#f9f9f9; border-left:4px solid #0066cc; padding:15px; border-radius:4px; box-shadow:0 1px 4px rgba(0,0,0,.08); }
+.suggestion-card-header { display:flex; justify-content:space-between; align-items:center; margin-bottom:12px; flex-wrap:wrap; gap:10px; }
+.suggestion-name { font-weight:600; color:#004080; }
+.suggestion-time { font-size:0.85rem; color:#999; }
+.suggestion-card-content { color:#333; line-height:1.6; word-break:break-word; }
+
 /* responsive */
 @media (max-width:600px) {
     header h1 { font-size:1.8rem; }
