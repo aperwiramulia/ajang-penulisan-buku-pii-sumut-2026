@@ -18,6 +18,7 @@
                 <li><a href="#guidelines">Panduan &amp; Syarat</a></li>
                 <li><a href="#schedule">Jadwal</a></li>
                 <li><a href="#prizes">Hadiah</a></li>
+                <li><a href="#register">Daftar &amp; Submit</a></li>
                 <li><a href="#downloads">Unduh</a></li>
                 <li><a href="#contact">Kontak</a></li>
                 <li><a href="#suggestions">Saran</a></li>
@@ -88,6 +89,73 @@
             <li><a href="docs/reviewer.pdf" target="_blank">Surat Permohonan Kesediaan Reviewer</a></li>
             <li><a href="docs/draft_sk.pdf" target="_blank">Draft SK Panitia Penulisan Buku</a></li>
         </ul>
+    </section>
+
+    <section id="register">
+        <h2>📝 Pendaftaran &amp; Submit Tulisan</h2>
+        <p>Silakan isi form berikut untuk mendaftar dan mengirimkan tulisan Anda.</p>
+        
+        <form id="registrationForm" enctype="multipart/form-data">
+            <div class="form-group">
+                <label for="reg-name">Nama Lengkap:</label>
+                <input type="text" id="reg-name" name="name" required>
+            </div>
+
+            <div class="form-group">
+                <label for="reg-email">Email:</label>
+                <input type="email" id="reg-email" name="email" required>
+            </div>
+
+            <div class="form-group">
+                <label for="reg-phone">Nomor Telepon/WhatsApp:</label>
+                <input type="tel" id="reg-phone" name="phone" required>
+            </div>
+
+            <div class="form-group">
+                <label for="reg-affiliation">Asal/Afiliasi (Universitas, Institusi, dsb):</label>
+                <input type="text" id="reg-affiliation" name="affiliation" placeholder="Contoh: Universitas Sumatera Utara">
+            </div>
+
+            <div class="form-group">
+                <label for="reg-category">Kategori Topik:</label>
+                <select id="reg-category" name="category" required>
+                    <option value="">-- Pilih Kategori --</option>
+                    <option value="Rekayasa Bangunan Sipil">Rekayasa Bangunan Sipil dan Manajemen Infrastruktur</option>
+                    <option value="Sumber Daya Air">Pengelolaan Sumber Daya Air dan Energi Baru Terbarukan (EBT)</option>
+                    <option value="Persampahan">Inovasi Persampahan dan Infrastruktur Budaya</option>
+                    <option value="Transportasi">Sistem Transportasi dan Logistik</option>
+                    <option value="Lainnya">Lainnya (sesuai tema)</option>
+                </select>
+            </div>
+
+            <div class="form-group">
+                <label for="reg-title">Judul Tulisan:</label>
+                <input type="text" id="reg-title" name="title" required placeholder="Judul karya tulis ilmiah Anda">
+            </div>
+
+            <div class="form-group">
+                <label for="reg-abstract">Abstrak/Ringkasan (250-500 karakter):</label>
+                <textarea id="reg-abstract" name="abstract" rows="3" required placeholder="Ringkasan singkat dari tulisan Anda"></textarea>
+            </div>
+
+            <div class="form-group">
+                <label for="reg-file">Upload File Tulisan (PDF atau DOC/DOCX, max 10MB):</label>
+                <input type="file" id="reg-file" name="file" accept=".pdf,.doc,.docx" required>
+                <small style="color: #666; margin-top: 5px; display: block;">Format: PDF, DOC, atau DOCX | Ukuran maksimal: 10MB</small>
+            </div>
+
+            <button type="submit" class="submit-btn">📤 Daftar &amp; Submit Tulisan</button>
+            <p class="form-note" style="display:none; color:#28a745; margin-top:15px;">✓ Tulisan Anda telah berhasil didaftarkan dan disimpan. Tim panitia akan menghubungi Anda secepatnya.</p>
+        </form>
+
+        <hr style="margin: 30px 0; border: none; border-top: 2px solid #ddd;">
+
+        <h3>📋 Daftar Peserta yang Telah Terdaftar</h3>
+        <p style="color: #666; font-size: 0.95rem;">Total peserta terdaftar: <strong id="registrationCount">0</strong></p>
+        <div id="registrationsHistory" class="registrations-history"></div>
+        <div id="emptyRegistrations" style="text-align: center; color: #666; padding: 20px;">
+            <p>Belum ada pendaftaran. Jadilah peserta pertama! 🎯</p>
+        </div>
     </section>
 
     <section id="contact">
@@ -232,8 +300,152 @@
         // Load suggestions history when page loads
         window.addEventListener('load', function() {
             displaySuggestionsHistory();
+            displayRegistrationsHistory();
             // Refresh history every 3 seconds
             setInterval(displaySuggestionsHistory, 3000);
+            setInterval(displayRegistrationsHistory, 5000);
+        });
+
+        // Registration Form Handler
+        const REGISTRATIONS_KEY = 'registrations';
+
+        function displayRegistrationsHistory() {
+            const registrations = JSON.parse(localStorage.getItem(REGISTRATIONS_KEY)) || [];
+            const container = document.getElementById('registrationsHistory');
+            const emptyState = document.getElementById('emptyRegistrations');
+            const countElement = document.getElementById('registrationCount');
+            
+            countElement.textContent = registrations.length;
+            
+            if (registrations.length === 0) {
+                container.style.display = 'none';
+                emptyState.style.display = 'block';
+                return;
+            }
+            
+            container.style.display = 'grid';
+            emptyState.style.display = 'none';
+            
+            // Sort by newest first
+            registrations.sort((a, b) => b.id - a.id);
+            
+            container.innerHTML = registrations.map(reg => `
+                <div class="registration-card">
+                    <div class="registration-card-header">
+                        <div>
+                            <div class="registration-name">✍️ ${escapeHtml(reg.name)}</div>
+                            <div class="registration-date">${reg.timestamp}</div>
+                        </div>
+                    </div>
+                    <div class="registration-info">
+                        <div class="registration-info-row">
+                            <label>📧 Email:</label>
+                            <span>${escapeHtml(reg.email)}</span>
+                        </div>
+                        <div class="registration-info-row">
+                            <label>📱 Telepon:</label>
+                            <span>${escapeHtml(reg.phone)}</span>
+                        </div>
+                        <div class="registration-info-row">
+                            <label>🏢 Asal:</label>
+                            <span>${escapeHtml(reg.affiliation || 'Tidak diberikan')}</span>
+                        </div>
+                        <div class="registration-info-row">
+                            <label>🏷️ Kategori:</label>
+                            <span>${escapeHtml(reg.category)}</span>
+                        </div>
+                        <div class="registration-info-row">
+                            <label>📚 Judul:</label>
+                            <span>${escapeHtml(reg.title)}</span>
+                        </div>
+                    </div>
+                    <div class="registration-abstract">
+                        <strong>Abstrak:</strong> ${escapeHtml(reg.abstract).replace(/\n/g, '<br>')}
+                    </div>
+                </div>
+            `).join('');
+        }
+
+        document.getElementById('registrationForm').addEventListener('submit', function(e) {
+            e.preventDefault();
+            
+            const name = document.getElementById('reg-name').value;
+            const email = document.getElementById('reg-email').value;
+            const phone = document.getElementById('reg-phone').value;
+            const affiliation = document.getElementById('reg-affiliation').value;
+            const category = document.getElementById('reg-category').value;
+            const title = document.getElementById('reg-title').value;
+            const abstract = document.getElementById('reg-abstract').value;
+            const fileInput = document.getElementById('reg-file');
+            const file = fileInput.files[0];
+            
+            // Validate file
+            if (!file) {
+                alert('Silakan upload file tulisan!');
+                return;
+            }
+            
+            const maxSize = 10 * 1024 * 1024; // 10MB
+            const allowedTypes = ['application/pdf', 'application/msword', 'application/vnd.openxmlformats-officedocument.wordprocessingml.document'];
+            
+            if (file.size > maxSize) {
+                alert('Ukuran file melebihi 10MB! Silakan upload file yang lebih kecil.');
+                return;
+            }
+            
+            if (!allowedTypes.includes(file.type)) {
+                alert('Format file harus PDF atau DOC/DOCX!');
+                return;
+            }
+            
+            // Read file and convert to base64
+            const reader = new FileReader();
+            reader.onload = function(e) {
+                const fileData = e.target.result;
+                
+                // Create registration object
+                const registration = {
+                    id: Date.now(),
+                    name: name,
+                    email: email,
+                    phone: phone,
+                    affiliation: affiliation,
+                    category: category,
+                    title: title,
+                    abstract: abstract,
+                    fileName: file.name,
+                    fileData: fileData,
+                    fileSize: (file.size / 1024).toFixed(2) + ' KB',
+                    timestamp: new Date().toLocaleString('id-ID')
+                };
+                
+                // Save to localStorage
+                let registrations = JSON.parse(localStorage.getItem(REGISTRATIONS_KEY)) || [];
+                registrations.push(registration);
+                localStorage.setItem(REGISTRATIONS_KEY, JSON.stringify(registrations));
+                
+                // Update display
+                displayRegistrationsHistory();
+                
+                // Send email notification
+                const subject = 'Pendaftaran Ajang Penulisan Buku PII SUMUT 2026';
+                const body = `Nama: ${name}\nEmail: ${email}\nTelepon: ${phone}\nAsal: ${affiliation}\nKategori: ${category}\nJudul: ${title}\n\nAbstrak:\n${abstract}\n\nFile: ${file.name} (${registration.fileSize})`;
+                const mailtoLink = `mailto:fim.piisumut@gmail.com?subject=${encodeURIComponent(subject)}&body=${encodeURIComponent(body)}`;
+                window.location.href = mailtoLink;
+                
+                // Show success message
+                const form = document.getElementById('registrationForm');
+                const formNote = form.querySelector('.form-note');
+                formNote.style.display = 'block';
+                
+                // Reset form
+                setTimeout(() => {
+                    form.reset();
+                    formNote.style.display = 'none';
+                }, 2000);
+            };
+            
+            reader.readAsArrayBuffer(file);
         });
     </script>
 </body>
