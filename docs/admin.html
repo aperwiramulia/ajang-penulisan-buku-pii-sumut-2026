@@ -3,13 +3,17 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <meta name="description" content="Admin Dashboard - Kelola Masukan Kotak Saran">
-    <title>Admin Dashboard - Kotak Saran</title>
+    <meta name="description" content="Admin Dashboard - Kelola Masukan dan Registrasi">
+    <title>Admin Dashboard</title>
     <link rel="stylesheet" href="css/styles.css">
     <style>
         .admin-header { background: linear-gradient(135deg, #004080, #0066cc); color: #fff; padding: 30px 20px; text-align: center; margin-bottom: 30px; }
         .admin-header h1 { margin: 0; font-size: 2rem; }
-        .admin-container { max-width: 1000px; margin: 0 auto; padding: 20px; }
+        .admin-container { max-width: 1100px; margin: 0 auto; padding: 20px; }
+        .admin-tabs { display: flex; gap: 10px; margin-bottom: 20px; flex-wrap: wrap; border-bottom: 2px solid #ddd; }
+        .admin-tab { padding: 12px 20px; background: none; border: none; cursor: pointer; font-size: 1rem; color: #666; font-weight: 500; border-bottom: 3px solid transparent; transition: all .3s; }
+        .admin-tab:hover { color: #004080; }
+        .admin-tab.active { color: #004080; border-bottom-color: #004080; }
         .admin-controls { display: flex; gap: 10px; margin-bottom: 20px; flex-wrap: wrap; }
         .admin-controls button { padding: 10px 20px; background: #004080; color: #fff; border: none; border-radius: 4px; cursor: pointer; font-size: 0.95rem; }
         .admin-controls button:hover { background: #0066cc; }
@@ -17,58 +21,100 @@
         .stat-box { background: #f0f2f5; padding: 15px; border-radius: 8px; flex: 1; min-width: 150px; border-left: 4px solid #004080; }
         .stat-box h3 { margin: 0 0 5px 0; color: #004080; font-size: 0.9rem; }
         .stat-box .number { font-size: 2rem; font-weight: bold; color: #004080; }
-        .submissions-container { display: grid; gap: 15px; }
-        .submission-card { background: #fff; padding: 20px; border-radius: 8px; border-left: 4px solid #004080; box-shadow: 0 2px 8px rgba(0,0,0,.1); }
-        .submission-header { display: flex; justify-content: space-between; align-items: start; margin-bottom: 12px; }
-        .submission-name { font-weight: 600; color: #004080; font-size: 1.1rem; }
-        .submission-date { font-size: 0.85rem; color: #666; }
-        .submission-meta { display: flex; gap: 20px; font-size: 0.9rem; margin-bottom: 12px; flex-wrap: wrap; }
-        .submission-meta label { color: #666; }
-        .submission-meta a { color: #0066cc; text-decoration: none; }
-        .submission-meta a:hover { text-decoration: underline; }
+        .content-section { display: none; }
+        .content-section.active { display: block; }
+        .submissions-container, .registrations-container { display: grid; gap: 15px; }
+        .submission-card, .registration-card { background: #fff; padding: 20px; border-radius: 8px; border-left: 4px solid #004080; box-shadow: 0 2px 8px rgba(0,0,0,.1); }
+        .submission-header, .registration-header { display: flex; justify-content: space-between; align-items: start; margin-bottom: 12px; }
+        .submission-name, .registration-name { font-weight: 600; color: #004080; font-size: 1.1rem; }
+        .submission-date, .registration-date { font-size: 0.85rem; color: #666; }
+        .submission-meta, .registration-meta { display: flex; gap: 20px; font-size: 0.9rem; margin-bottom: 12px; flex-wrap: wrap; }
+        .submission-meta label, .registration-meta label { color: #666; font-weight: 500; }
+        .submission-meta a, .registration-meta a { color: #0066cc; text-decoration: none; }
+        .submission-meta a:hover, .registration-meta a:hover { text-decoration: underline; }
         .submission-text { background: #f9f9f9; padding: 12px; border-radius: 4px; font-size: 0.95rem; line-height: 1.6; color: #333; }
-        .submission-actions { display: flex; gap: 10px; margin-top: 12px; }
-        .submission-actions button { padding: 6px 12px; font-size: 0.85rem; background: #f0f2f5; border: 1px solid #ccc; border-radius: 4px; cursor: pointer; transition: background .3s; }
-        .submission-actions button:hover { background: #ddd; }
+        .registration-abstract { background: #f9f9f9; padding: 12px; border-radius: 4px; font-size: 0.95rem; line-height: 1.6; color: #333; font-style: italic; }
+        .submission-actions, .registration-actions { display: flex; gap: 10px; margin-top: 12px; }
+        .submission-actions button, .registration-actions button { padding: 6px 12px; font-size: 0.85rem; background: #f0f2f5; border: 1px solid #ccc; border-radius: 4px; cursor: pointer; transition: background .3s; }
+        .submission-actions button:hover, .registration-actions button:hover { background: #ddd; }
         .empty-state { text-align: center; padding: 40px 20px; color: #666; }
         .empty-state p { font-size: 1.1rem; }
         .password-dialog { display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,.5); z-index: 1000; justify-content: center; align-items: center; }
         .password-dialog.active { display: flex; }
-        .password-box { background: #fff; padding: 30px; border-radius: 8px; text-align: center; }
+        .password-box { background: #fff; padding: 30px; border-radius: 8px; text-align: center; max-width: 400px; }
         .password-box h2 { margin-top: 0; }
-        .password-box input { width: 100%; padding: 10px; margin: 15px 0; border: 1px solid #ccc; border-radius: 4px; font-size: 1rem; }
+        .password-box input { width: 100%; padding: 10px; margin: 15px 0; border: 1px solid #ccc; border-radius: 4px; font-size: 1rem; box-sizing: border-box; }
         .password-box button { padding: 10px 20px; background: #004080; color: #fff; border: none; border-radius: 4px; cursor: pointer; }
         .delete-btn { background: #dc3545 !important; color: #fff !important; }
         .delete-btn:hover { background: #c82333 !important; }
+        .registration-info-grid { display: grid; gap: 10px; margin: 10px 0; }
+        .registration-info-row { display: flex; gap: 20px; font-size: 0.95rem; flex-wrap: wrap; }
+        .registration-info-row label { color: #666; font-weight: 500; min-width: 100px; }
+        .registration-file-link { color: #0066cc; text-decoration: none; cursor: pointer; }
+        .registration-file-link:hover { text-decoration: underline; }
     </style>
 </head>
 <body>
     <div class="admin-header">
-        <h1>🔒 Admin Dashboard - Kotak Saran</h1>
-        <p>Kelola semua masukan dan saran yang telah diterima</p>
+        <h1>🔒 Admin Dashboard</h1>
+        <p>Kelola semua masukan saran dan registrasi peserta</p>
     </div>
 
     <div class="admin-container">
-        <div class="admin-controls">
-            <button onclick="exportData()">📥 Export Masukan (CSV)</button>
-            <button onclick="clearAllData()" class="delete-btn">🗑️ Hapus Semua</button>
-            <button onclick="logout()">🚪 Keluar</button>
+        <div class="admin-tabs">
+            <button class="admin-tab active" onclick="switchTab('suggestions')">💬 Kotak Saran</button>
+            <button class="admin-tab" onclick="switchTab('registrations')">📝 Registrasi Peserta</button>
         </div>
 
-        <div class="stats">
-            <div class="stat-box">
-                <h3>Total Masukan</h3>
-                <div class="number" id="totalCount">0</div>
+        <!-- Suggestions Tab -->
+        <div id="suggestions" class="content-section active">
+            <div class="admin-controls">
+                <button onclick="exportSuggestionsData()">📥 Export Saran (CSV)</button>
+                <button onclick="clearAllSuggestions()" class="delete-btn">🗑️ Hapus Semua Saran</button>
+                <button onclick="logout()">🚪 Keluar</button>
             </div>
-            <div class="stat-box">
-                <h3>Hari Ini</h3>
-                <div class="number" id="todayCount">0</div>
+
+            <div class="stats">
+                <div class="stat-box">
+                    <h3>Total Saran</h3>
+                    <div class="number" id="suggestionsCount">0</div>
+                </div>
+                <div class="stat-box">
+                    <h3>Saran Hari Ini</h3>
+                    <div class="number" id="suggestionsToday">0</div>
+                </div>
+            </div>
+
+            <div id="suggestionsContainer" class="submissions-container"></div>
+            <div id="emptySuggestions" class="empty-state" style="display: none;">
+                <p>📭 Belum ada saran yang diterima.</p>
             </div>
         </div>
 
-        <div id="submissionsContainer" class="submissions-container"></div>
-        <div id="emptyState" class="empty-state" style="display: none;">
-            <p>📭 Belum ada masukan yang diterima.</p>
+        <!-- Registrations Tab -->
+        <div id="registrations" class="content-section">
+            <div class="admin-controls">
+                <button onclick="exportRegistrationsData()">📥 Export Registrasi (CSV)</button>
+                <button onclick="downloadAllFiles()">📦 Download Semua File</button>
+                <button onclick="clearAllRegistrations()" class="delete-btn">🗑️ Hapus Semua</button>
+                <button onclick="logout()">🚪 Keluar</button>
+            </div>
+
+            <div class="stats">
+                <div class="stat-box">
+                    <h3>Total Peserta</h3>
+                    <div class="number" id="registrationsCount">0</div>
+                </div>
+                <div class="stat-box">
+                    <h3>Peserta Hari Ini</h3>
+                    <div class="number" id="registrationsToday">0</div>
+                </div>
+            </div>
+
+            <div id="registrationsContainer" class="registrations-container"></div>
+            <div id="emptyRegistrations" class="empty-state" style="display: none;">
+                <p>📭 Belum ada pendaftaran.</p>
+            </div>
         </div>
     </div>
 
@@ -82,10 +128,10 @@
     </div>
 
     <script>
-        const ADMIN_PASSWORD = 'PII2026'; // Password default
-        const STORAGE_KEY = 'suggestions';
+        const ADMIN_PASSWORD = 'PII2026';
+        const STORAGE_KEY_SUGGESTIONS = 'suggestions';
+        const STORAGE_KEY_REGISTRATIONS = 'registrations';
         
-        // Check if user is authenticated
         function isAuthenticated() {
             return sessionStorage.getItem('adminAuth') === 'true';
         }
@@ -95,7 +141,7 @@
             if (password === ADMIN_PASSWORD) {
                 sessionStorage.setItem('adminAuth', 'true');
                 document.getElementById('passwordDialog').classList.remove('active');
-                loadSubmissions();
+                loadAllData();
             } else {
                 alert('Password salah!');
                 document.getElementById('passwordInput').value = '';
@@ -108,17 +154,36 @@
             location.reload();
         }
 
-        function loadSubmissions() {
-            const submissions = JSON.parse(localStorage.getItem(STORAGE_KEY)) || [];
-            const container = document.getElementById('submissionsContainer');
-            const emptyState = document.getElementById('emptyState');
+        function switchTab(tabName) {
+            document.querySelectorAll('.content-section').forEach(el => el.classList.remove('active'));
+            document.querySelectorAll('.admin-tab').forEach(el => el.classList.remove('active'));
             
-            document.getElementById('totalCount').textContent = submissions.length;
+            document.getElementById(tabName).classList.add('active');
+            event.target.classList.add('active');
             
-            // Count today's submissions
+            if (tabName === 'suggestions') {
+                loadSuggestionsData();
+            } else {
+                loadRegistrationsData();
+            }
+        }
+
+        function escapeHtml(text) {
+            const map = {'&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#039;'};
+            return text.replace(/[&<>"']/g, m => map[m]);
+        }
+
+        // ===== SUGGESTIONS =====
+        function loadSuggestionsData() {
+            const submissions = JSON.parse(localStorage.getItem(STORAGE_KEY_SUGGESTIONS)) || [];
+            const container = document.getElementById('suggestionsContainer');
+            const emptyState = document.getElementById('emptySuggestions');
+            
+            document.getElementById('suggestionsCount').textContent = submissions.length;
+            
             const today = new Date().toLocaleDateString('id-ID');
             const todayCount = submissions.filter(s => s.timestamp.startsWith(today)).length;
-            document.getElementById('todayCount').textContent = todayCount;
+            document.getElementById('suggestionsToday').textContent = todayCount;
             
             if (submissions.length === 0) {
                 container.style.display = 'none';
@@ -129,100 +194,205 @@
             container.style.display = 'grid';
             emptyState.style.display = 'none';
             
-            // Sort by newest first
             submissions.sort((a, b) => b.id - a.id);
             
-            container.innerHTML = submissions.map(submission => `
+            container.innerHTML = submissions.map(s => `
                 <div class="submission-card">
                     <div class="submission-header">
-                        <div class="submission-name">${escapeHtml(submission.name)}</div>
-                        <div class="submission-date">${submission.timestamp}</div>
+                        <div class="submission-name">${escapeHtml(s.name)}</div>
+                        <div class="submission-date">${s.timestamp}</div>
                     </div>
                     <div class="submission-meta">
-                        <div><label>Email:</label> <a href="mailto:${escapeHtml(submission.email)}">${escapeHtml(submission.email)}</a></div>
-                        <div><label>WhatsApp:</label> ${escapeHtml(submission.phone)}</div>
+                        <div><label>Email:</label> <a href="mailto:${escapeHtml(s.email)}">${escapeHtml(s.email)}</a></div>
+                        <div><label>WhatsApp:</label> ${escapeHtml(s.phone)}</div>
                     </div>
-                    <div class="submission-text">${escapeHtml(submission.suggestion).replace(/\n/g, '<br>')}</div>
+                    <div class="submission-text">${escapeHtml(s.suggestion).replace(/\n/g, '<br>')}</div>
                     <div class="submission-actions">
-                        <button onclick="deleteSubmission(${submission.id})">🗑️ Hapus</button>
-                        <button onclick="copySubmissionText(${submission.id})">📋 Salin</button>
+                        <button onclick="deleteSuggestion(${s.id})">🗑️ Hapus</button>
+                        <button onclick="copySuggestionText(${s.id})">📋 Salin</button>
                     </div>
                 </div>
             `).join('');
         }
 
-        function deleteSubmission(id) {
+        function deleteSuggestion(id) {
             if (confirm('Yakin ingin menghapus masukan ini?')) {
-                let submissions = JSON.parse(localStorage.getItem(STORAGE_KEY)) || [];
+                let submissions = JSON.parse(localStorage.getItem(STORAGE_KEY_SUGGESTIONS)) || [];
                 submissions = submissions.filter(s => s.id !== id);
-                localStorage.setItem(STORAGE_KEY, JSON.stringify(submissions));
-                loadSubmissions();
+                localStorage.setItem(STORAGE_KEY_SUGGESTIONS, JSON.stringify(submissions));
+                loadSuggestionsData();
             }
         }
 
-        function clearAllData() {
-            if (confirm('Yakin ingin menghapus SEMUA masukan? Tindakan ini tidak dapat dibatalkan!')) {
-                if (confirm('PERHATIAN! Ini adalah konfirmasi terakhir. Semua data akan hilang permanen.')) {
-                    localStorage.removeItem(STORAGE_KEY);
-                    loadSubmissions();
-                    alert('Semua data telah dihapus.');
+        function copySuggestionText(id) {
+            const submissions = JSON.parse(localStorage.getItem(STORAGE_KEY_SUGGESTIONS)) || [];
+            const s = submissions.find(x => x.id === id);
+            if (s) {
+                const text = `Nama: ${s.name}\nEmail: ${s.email}\nWhatsApp: ${s.phone}\n\nSaran:\n${s.suggestion}`;
+                navigator.clipboard.writeText(text).then(() => alert('✓ Disalin!'));
+            }
+        }
+
+        function clearAllSuggestions() {
+            if (confirm('Yakin ingin menghapus SEMUA saran?')) {
+                if (confirm('PERHATIAN! Data tidak dapat dikembalikan. Lanjutkan?')) {
+                    localStorage.removeItem(STORAGE_KEY_SUGGESTIONS);
+                    loadSuggestionsData();
+                    alert('Semua saran telah dihapus.');
                 }
             }
         }
 
-        function exportData() {
-            const submissions = JSON.parse(localStorage.getItem(STORAGE_KEY)) || [];
+        function exportSuggestionsData() {
+            const submissions = JSON.parse(localStorage.getItem(STORAGE_KEY_SUGGESTIONS)) || [];
             if (submissions.length === 0) {
                 alert('Tidak ada data untuk diexport.');
                 return;
             }
 
-            // Create CSV
             let csv = 'No,Tanggal,Nama,Email,WhatsApp,Saran\n';
-            submissions.forEach((s, index) => {
-                csv += `${index + 1},"${s.timestamp}","${s.name.replace(/"/g, '""')}","${s.email}","${s.phone}","${s.suggestion.replace(/"/g, '""').replace(/\n/g, ' ')}"\n`;
+            submissions.forEach((s, i) => {
+                csv += `${i+1},"${s.timestamp}","${s.name.replace(/"/g, '""')}","${s.email}","${s.phone}","${s.suggestion.replace(/"/g, '""').replace(/\n/g, ' ')}"\n`;
             });
 
-            // Download
             const blob = new Blob([csv], { type: 'text/csv;charset=utf-8;' });
             const link = document.createElement('a');
-            const url = URL.createObjectURL(blob);
-            link.setAttribute('href', url);
-            link.setAttribute('download', `masukan_kotak_saran_${new Date().toLocaleDateString('id-ID')}.csv`);
-            link.style.visibility = 'hidden';
-            document.body.appendChild(link);
+            link.setAttribute('href', URL.createObjectURL(blob));
+            link.setAttribute('download', `saran_${new Date().toLocaleDateString('id-ID')}.csv`);
             link.click();
-            document.body.removeChild(link);
         }
 
-        function copySubmissionText(id) {
-            const submissions = JSON.parse(localStorage.getItem(STORAGE_KEY)) || [];
-            const submission = submissions.find(s => s.id === id);
-            if (submission) {
-                const text = `Nama: ${submission.name}\nEmail: ${submission.email}\nWhatsApp: ${submission.phone}\n\nSaran:\n${submission.suggestion}`;
-                navigator.clipboard.writeText(text).then(() => {
-                    alert('✓ Teks berhasil disalin ke clipboard!');
-                });
+        // ===== REGISTRATIONS =====
+        function loadRegistrationsData() {
+            const registrations = JSON.parse(localStorage.getItem(STORAGE_KEY_REGISTRATIONS)) || [];
+            const container = document.getElementById('registrationsContainer');
+            const emptyState = document.getElementById('emptyRegistrations');
+            
+            document.getElementById('registrationsCount').textContent = registrations.length;
+            
+            const today = new Date().toLocaleDateString('id-ID');
+            const todayCount = registrations.filter(r => r.timestamp.startsWith(today)).length;
+            document.getElementById('registrationsToday').textContent = todayCount;
+            
+            if (registrations.length === 0) {
+                container.style.display = 'none';
+                emptyState.style.display = 'block';
+                return;
+            }
+            
+            container.style.display = 'grid';
+            emptyState.style.display = 'none';
+            
+            registrations.sort((a, b) => b.id - a.id);
+            
+            container.innerHTML = registrations.map(r => `
+                <div class="registration-card">
+                    <div class="registration-header">
+                        <div>
+                            <div class="registration-name">✍️ ${escapeHtml(r.name)}</div>
+                            <div class="registration-date">${r.timestamp}</div>
+                        </div>
+                    </div>
+                    <div class="registration-meta">
+                        <div class="registration-info-grid">
+                            <div class="registration-info-row">
+                                <label>📧 Email:</label>
+                                <span><a href="mailto:${escapeHtml(r.email)}">${escapeHtml(r.email)}</a></span>
+                            </div>
+                            <div class="registration-info-row">
+                                <label>📱 Telepon:</label>
+                                <span>${escapeHtml(r.phone)}</span>
+                            </div>
+                            <div class="registration-info-row">
+                                <label>🏢 Asal:</label>
+                                <span>${escapeHtml(r.affiliation || '-')}</span>
+                            </div>
+                            <div class="registration-info-row">
+                                <label>🏷️ Kategori:</label>
+                                <span>${escapeHtml(r.category)}</span>
+                            </div>
+                            <div class="registration-info-row">
+                                <label>📚 Judul:</label>
+                                <span>${escapeHtml(r.title)}</span>
+                            </div>
+                            <div class="registration-info-row">
+                                <label>📄 File:</label>
+                                <span class="registration-file-link" onclick="downloadFile(${r.id})">${escapeHtml(r.fileName)} (${r.fileSize})</span>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="registration-abstract">
+                        <strong>Abstrak:</strong><br>${escapeHtml(r.abstract).replace(/\n/g, '<br>')}
+                    </div>
+                    <div class="registration-actions">
+                        <button onclick="deleteRegistration(${r.id})">🗑️ Hapus</button>
+                        <button onclick="downloadFile(${r.id})">📥 Download File</button>
+                    </div>
+                </div>
+            `).join('');
+        }
+
+        function downloadFile(id) {
+            const registrations = JSON.parse(localStorage.getItem(STORAGE_KEY_REGISTRATIONS)) || [];
+            const r = registrations.find(x => x.id === id);
+            if (r && r.fileData) {
+                const link = document.createElement('a');
+                link.href = r.fileData;
+                link.download = r.fileName;
+                link.click();
             }
         }
 
-        function escapeHtml(text) {
-            const map = {
-                '&': '&amp;',
-                '<': '&lt;',
-                '>': '&gt;',
-                '"': '&quot;',
-                "'": '&#039;'
-            };
-            return text.replace(/[&<>"']/g, m => map[m]);
+        function deleteRegistration(id) {
+            if (confirm('Yakin ingin menghapus pendaftaran ini?')) {
+                let registrations = JSON.parse(localStorage.getItem(STORAGE_KEY_REGISTRATIONS)) || [];
+                registrations = registrations.filter(r => r.id !== id);
+                localStorage.setItem(STORAGE_KEY_REGISTRATIONS, JSON.stringify(registrations));
+                loadRegistrationsData();
+            }
         }
 
-        // On page load
+        function clearAllRegistrations() {
+            if (confirm('Yakin ingin menghapus SEMUA pendaftaran?')) {
+                if (confirm('PERHATIAN! Data tidak dapat dikembalikan. Lanjutkan?')) {
+                    localStorage.removeItem(STORAGE_KEY_REGISTRATIONS);
+                    loadRegistrationsData();
+                    alert('Semua pendaftaran telah dihapus.');
+                }
+            }
+        }
+
+        function exportRegistrationsData() {
+            const registrations = JSON.parse(localStorage.getItem(STORAGE_KEY_REGISTRATIONS)) || [];
+            if (registrations.length === 0) {
+                alert('Tidak ada data untuk diexport.');
+                return;
+            }
+
+            let csv = 'No,Tanggal,Nama,Email,Telepon,Asal,Kategori,Judul,Abstrak,Nama File\n';
+            registrations.forEach((r, i) => {
+                csv += `${i+1},"${r.timestamp}","${r.name.replace(/"/g, '""')}","${r.email}","${r.phone}","${(r.affiliation || '').replace(/"/g, '""')}","${r.category}","${r.title.replace(/"/g, '""')}","${r.abstract.replace(/"/g, '""').replace(/\n/g, ' ')}","${r.fileName}"\n`;
+            });
+
+            const blob = new Blob([csv], { type: 'text/csv;charset=utf-8;' });
+            const link = document.createElement('a');
+            link.setAttribute('href', URL.createObjectURL(blob));
+            link.setAttribute('download', `registrasi_${new Date().toLocaleDateString('id-ID')}.csv`);
+            link.click();
+        }
+
+        function downloadAllFiles() {
+            alert('Fitur download multiple files akan segera tersedia. Untuk saat ini, gunakan tombol Download File pada setiap registrasi.');
+        }
+
+        function loadAllData() {
+            loadSuggestionsData();
+            setInterval(loadSuggestionsData, 5000);
+        }
+
         if (isAuthenticated()) {
             document.getElementById('passwordDialog').classList.remove('active');
-            loadSubmissions();
-            // Refresh data every 5 seconds
-            setInterval(loadSubmissions, 5000);
+            loadAllData();
         } else {
             document.getElementById('passwordDialog').classList.add('active');
             document.getElementById('passwordInput').focus();
