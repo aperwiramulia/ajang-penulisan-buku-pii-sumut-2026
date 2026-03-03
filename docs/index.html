@@ -119,12 +119,13 @@
                 <textarea id="suggestion" name="suggestion" rows="5" required></textarea>
             </div>
             <button type="submit" class="submit-btn">Kirim Saran</button>
-            <p class="form-note" style="display:none; color:#28a745; margin-top:15px;">Terima kasih! Saran Anda telah berhasil dikirim.</p>
+            <p class="form-note" style="display:none; color:#28a745; margin-top:15px;">✓ Terima kasih! Saran Anda telah berhasil dikirim dan tersimpan.</p>
         </form>
     </section>
 
     <footer>
         <p>&copy; 2026 Persatuan Insinyur Indonesia Wilayah Sumatera Utara</p>
+        <p style="font-size: 0.8rem; margin-top: 5px;"><a href="admin.html" style="color: #fff; text-decoration: none; opacity: 0.7;">Admin Dashboard</a></p>
     </footer>
 
     <script>
@@ -136,12 +137,25 @@
             const phone = document.getElementById('phone').value;
             const suggestion = document.getElementById('suggestion').value;
             
-            // Create mailto link with form data
+            // Create submission object with timestamp
+            const submission = {
+                id: Date.now(),
+                name: name,
+                email: email,
+                phone: phone || 'Tidak diberikan',
+                suggestion: suggestion,
+                timestamp: new Date().toLocaleString('id-ID')
+            };
+            
+            // Get existing submissions from localStorage
+            let submissions = JSON.parse(localStorage.getItem('suggestions')) || [];
+            submissions.push(submission);
+            localStorage.setItem('suggestions', JSON.stringify(submissions));
+            
+            // Send email via FormSubmit
             const subject = 'Saran untuk Ajang Penulisan Buku PII SUMUT 2026';
             const body = `Nama: ${name}\nEmail: ${email}\nNo. WhatsApp: ${phone || 'Tidak diberikan'}\n\nSaran:\n${suggestion}`;
             const mailtoLink = `mailto:fim.piisumut@gmail.com?subject=${encodeURIComponent(subject)}&body=${encodeURIComponent(body)}`;
-            
-            // Open email client
             window.location.href = mailtoLink;
             
             // Show success message
