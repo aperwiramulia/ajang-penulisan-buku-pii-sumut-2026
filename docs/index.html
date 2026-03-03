@@ -20,6 +20,7 @@
                 <li><a href="#prizes">Hadiah</a></li>
                 <li><a href="#downloads">Unduh</a></li>
                 <li><a href="#contact">Kontak</a></li>
+                <li><a href="#suggestions">Saran</a></li>
             </ul>
         </nav>
     </header>
@@ -97,8 +98,63 @@
         Telp: 0853-6244-8434 (Rizki)</p>
     </section>
 
+    <section id="suggestions">
+        <h2>Kotak Saran</h2>
+        <p>Kami sangat menghargai masukan dan saran Anda untuk meningkatkan ajang penulisan buku ini. Silakan isi form di bawah:</p>
+        <form id="suggestionForm">
+            <div class="form-group">
+                <label for="name">Nama:</label>
+                <input type="text" id="name" name="name" required>
+            </div>
+            <div class="form-group">
+                <label for="email">Email:</label>
+                <input type="email" id="email" name="email" required>
+            </div>
+            <div class="form-group">
+                <label for="phone">Nomor WhatsApp (opsional):</label>
+                <input type="tel" id="phone" name="phone">
+            </div>
+            <div class="form-group">
+                <label for="suggestion">Saran &amp; Masukan:</label>
+                <textarea id="suggestion" name="suggestion" rows="5" required></textarea>
+            </div>
+            <button type="submit" class="submit-btn">Kirim Saran</button>
+            <p class="form-note" style="display:none; color:#28a745; margin-top:15px;">Terima kasih! Saran Anda telah berhasil dikirim.</p>
+        </form>
+    </section>
+
     <footer>
         <p>&copy; 2026 Persatuan Insinyur Indonesia Wilayah Sumatera Utara</p>
     </footer>
+
+    <script>
+        document.getElementById('suggestionForm').addEventListener('submit', function(e) {
+            e.preventDefault();
+            
+            const name = document.getElementById('name').value;
+            const email = document.getElementById('email').value;
+            const phone = document.getElementById('phone').value;
+            const suggestion = document.getElementById('suggestion').value;
+            
+            // Create mailto link with form data
+            const subject = 'Saran untuk Ajang Penulisan Buku PII SUMUT 2026';
+            const body = `Nama: ${name}\nEmail: ${email}\nNo. WhatsApp: ${phone || 'Tidak diberikan'}\n\nSaran:\n${suggestion}`;
+            const mailtoLink = `mailto:fim.piisumut@gmail.com?subject=${encodeURIComponent(subject)}&body=${encodeURIComponent(body)}`;
+            
+            // Open email client
+            window.location.href = mailtoLink;
+            
+            // Show success message
+            const form = document.getElementById('suggestionForm');
+            const formNote = form.querySelector('.form-note');
+            formNote.style.display = 'block';
+            
+            // Reset form after 2 seconds
+            setTimeout(() => {
+                form.reset();
+                formNote.style.display = 'none';
+            }, 2000);
+        });
+    </script>
 </body>
 </html>
